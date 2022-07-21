@@ -1,6 +1,5 @@
 import './App.css';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import 'antd/dist/antd.min.css';
 import Login from './components/login/Login';
 import Dashboard from './components/dashboard/Dashboard';
 import EmployeeForm from './components/form/EmployeeForm';

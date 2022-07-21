@@ -2,7 +2,7 @@ import { Table, Space, Button, Typography, Tooltip, notification } from 'antd';
 import { useSelector, useDispatch } from 'react-redux';
 import { PlusOutlined } from '@ant-design/icons';
 import { useNavigate } from "react-router-dom";
-import { deleteEmployee } from '../redux/employeeSlice';
+import { deleteEmployee } from '../redux/dataSlice';
 import { logout } from '../redux/userSlice';
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
@@ -14,7 +14,8 @@ const Dashboard = () => {
 
     const dispatch = useDispatch();
 
-    const employees = useSelector((state) => state.employees)
+    const employees = useSelector((state) => state.data.employees)
+
     const user = useSelector((state) => state.user.user)
 
     const navigate = useNavigate();

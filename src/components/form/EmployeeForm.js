@@ -2,7 +2,7 @@ import { Form, Input, DatePicker, Select, Radio, Checkbox, Row, Col, Typography,
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { addEmployee, updateEmployee } from "../redux/employeeSlice";
+import { addEmployee, updateEmployee } from "../redux/dataSlice";
 import moment from 'moment';
 
 const config = {
@@ -25,7 +25,8 @@ const EmployeeForm = () => {
 
     const { id } = useParams();
 
-    const employee = useSelector((state) => state.employees.find((employee) => employee.id === id))
+    const employees = useSelector((state) => state.data.employees)
+
 
     const [ form ] = Form.useForm();
 
@@ -60,7 +61,10 @@ const EmployeeForm = () => {
                 id: "",
                 key: ""
             })
-        } else if (id === employee.id) {
+        } else {
+
+            const employee = employees.find((emp) => emp.id === id)
+
             setBtnText("Update")
             form.setFieldsValue({
                 name: employee.name,
@@ -75,7 +79,7 @@ const EmployeeForm = () => {
                 key: employee.key
             })
         }
-    }, [employee, id, form])
+    }, [employees, id, form])
 
     const onFinish = (fieldsValue) => {
         if(id === undefined) {
@@ -93,6 +97,9 @@ const EmployeeForm = () => {
                 duration: "3"
             })
         } else {
+
+            const employee = employees.find((emp) => emp.id === id)
+
             const details = {
                 ...fieldsValue,
                 'date_of_joining': fieldsValue['date_of_joining'].format(dateFormat),
