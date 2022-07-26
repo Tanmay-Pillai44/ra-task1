@@ -1,76 +1,112 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import dataService from "../services/dataService";
 
-const emp = [{
-    name: 'John',
-    designation: 'SDE',
-    date_of_joining: '15-07-2022',
-    address: `Iris Watson, P.O. Box 283 8562 Fusce Rd., Frederick Nebraska`,
-    city: 'San Francisco',
-    date_of_birth: '12-06-1996',
-    gender: 'Male',
-    hobbies: 'Travel, Art, Chess',
-    id: '1',
-    key: '1'
-},
-{
-    name: 'Biden',
-    designation: 'Consultant',
-    date_of_joining: '11-06-2022',
-    address: `Iris Watson, P.O. Box 283 8562 Fusce Rd., Frederick Nebraska`,
-    city: 'San Francisco',
-    date_of_birth: '04-04-1998',
-    gender: 'Male',
-    hobbies: 'Travel, Art, Chess, Trekking',
-    id: '2',
-    key: '2'
-},
-{
-    name: 'Alice',
-    designation: 'HR',
-    date_of_joining: '18-10-2021',
-    address: `Iris Watson, P.O. Box 283 8562 Fusce Rd., Frederick Nebraska`,
-    city: 'San Francisco',
-    date_of_birth: '09-03-1993',
-    gender: 'Female',
-    hobbies: 'Travel, Chess, Trekking',
-    id: '3',
-    key: '3'
-}]
 
 const initialState = {
-    employees: emp,
-    admins: [],
+    employees: [],
+    isError: false,
+    isSuccess: false,
+    isLoading: false,
 }
+
+export const addEmployee = createAsyncThunk('/employees/add', async (employeeData, thunkAPI) => {
+    try {
+        const token = thunkAPI.getState().auth.user.token
+        return await dataService.addEmployee(employeeData, token)
+    } catch (err) {
+        return thunkAPI.rejectWithValue(err.response.data)
+    }
+})
+
+export const getEmployees = createAsyncThunk('/employees/getAll', async (_, thunkAPI) => {
+    try {
+        const token = thunkAPI.getState().auth.user.token
+        return await dataService.getEmployees(token)
+    } catch (err) {
+        return thunkAPI.rejectWithValue(err.response.data)
+    }
+})
+
+export const deleteEmployee = createAsyncThunk('/employees/delete', async (employeeData, thunkAPI) => {
+    try {
+        const token = thunkAPI.getState().auth.user.token
+        return await dataService.deleteEmployee(employeeData, token)
+    } catch (err) {
+        return thunkAPI.rejectWithValue(err.response.data)
+    }
+})
+
+export const updateEmployee = createAsyncThunk('/employees/update', async (employeeData, thunkAPI) => {
+    try {
+        const token = thunkAPI.getState().auth.user.token
+        return await dataService.updateEmployee(employeeData, token)
+    } catch (err) {
+        return thunkAPI.rejectWithValue(err.response.data)
+    }
+})
 
 const dataSlice = createSlice({
     name: "data",
     initialState,
     reducers: {
-        addEmployee: (state, action) => {
-            state.employees.push(action.payload)
-        },
-        updateEmployee: (state, action) => {
-            const { name, designation, date_of_joining, address, city, date_of_birth, gender, hobbies, id, key } = action.payload;
-            const existingEmployee = state.employees.find((employee) => employee.id === id)
-            if(existingEmployee) {
-                existingEmployee.name = name;
-                existingEmployee.designation = designation;
-                existingEmployee.date_of_joining = date_of_joining;
-                existingEmployee.address = address;
-                existingEmployee.city =city;
-                existingEmployee.date_of_birth = date_of_birth;
-                existingEmployee.gender = gender;
-                existingEmployee.hobbies = hobbies;
-                existingEmployee.key = key;
-            }
-        },
-        deleteEmployee: (state, action) => {
-            const { id } = action.payload;
-            return {...state, employees: state.employees.filter((employee) => employee.id !== id)};
-        }
+        reset: (state) => initialState,
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(addEmployee.pending, (state) => {
+                state.isLoading = true
+            })
+            .addCase(addEmployee.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.employees.push(action.payload)
+            })
+            .addCase(addEmployee.rejected, (state) => {
+                state.isLoading = false
+                state.isError = true
+            })
+            .addCase(getEmployees.pending, (state) => {
+                state.isLoading = true
+            })
+            .addCase(getEmployees.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.employees = action.payload
+            })
+            .addCase(getEmployees.rejected, (state) => {
+                state.isLoading = false
+                state.isError = true
+            })
+            .addCase(deleteEmployee.pending, (state) => {
+                state.isLoading = true
+            })
+            .addCase(deleteEmployee.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.employees = state.employees.filter((employee) => employee._id !== action.payload.id)
+            })
+            .addCase(deleteEmployee.rejected, (state) => {
+                state.isLoading = false
+                state.isError = true
+            })
+            .addCase(updateEmployee.pending, (state) => {
+                state.isLoading = true
+            })
+            .addCase(updateEmployee.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                const { _id } = action.payload
+                if(_id) {
+                    state.employees = state.employees.map((emp) => emp._id === _id ? action.payload : emp)
+                }
+            })
+            .addCase(updateEmployee.rejected, (state) => {
+                state.isLoading = false
+                state.isError = true
+            })
     }
 })
 
-export const { addEmployee, updateEmployee, deleteEmployee } = dataSlice.actions;
+export const { reset } = dataSlice.actions;
 
 export default dataSlice.reducer;

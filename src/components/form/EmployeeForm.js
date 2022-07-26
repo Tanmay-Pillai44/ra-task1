@@ -25,7 +25,7 @@ const EmployeeForm = () => {
 
     const { id } = useParams();
 
-    const employees = useSelector((state) => state.data.employees)
+    const { employees } = useSelector((state) => state.data)
 
 
     const [ form ] = Form.useForm();
@@ -42,9 +42,7 @@ const EmployeeForm = () => {
         city: "",
         date_of_birth: "",
         gender: "",
-        hobbies: "",
-        id: "",
-        key: ""
+        hobbies: [],
     }
 
     useEffect(() => {
@@ -57,13 +55,11 @@ const EmployeeForm = () => {
                 city: "",
                 date_of_birth: "",
                 gender: "",
-                hobbies: "",
-                id: "",
-                key: ""
+                hobbies: [],
             })
         } else {
 
-            const employee = employees.find((emp) => emp.id === id)
+            const employee = employees.find((emp) => emp._id === id)
 
             setBtnText("Update")
             form.setFieldsValue({
@@ -75,8 +71,6 @@ const EmployeeForm = () => {
                 date_of_birth: moment(employee.date_of_birth, dateFormat),
                 gender: employee.gender,
                 hobbies: employee.hobbies,
-                id: employee.id,
-                key: employee.key
             })
         }
     }, [employees, id, form])
@@ -87,9 +81,7 @@ const EmployeeForm = () => {
                 ...fieldsValue,
                 'date_of_joining': fieldsValue['date_of_joining'].format(dateFormat),
                 'date_of_birth': fieldsValue['date_of_birth'].format(dateFormat),
-                'hobbies': fieldsValue['hobbies'].join(', '),
-                id: new Date().getTime().toString(),
-                key: new Date().getTime().toString()
+                // 'hobbies': fieldsValue['hobbies'].join(', '),
             };
             dispatch(addEmployee(newDetails))
             notification.success({
@@ -98,15 +90,14 @@ const EmployeeForm = () => {
             })
         } else {
 
-            const employee = employees.find((emp) => emp.id === id)
+            // const employee = employees.find((emp) => emp._id === id)
 
             const details = {
                 ...fieldsValue,
                 'date_of_joining': fieldsValue['date_of_joining'].format(dateFormat),
                 'date_of_birth': fieldsValue['date_of_birth'].format(dateFormat),
-                'hobbies': typeof fieldsValue['hobbies'] === "string" ? fieldsValue['hobbies'] : fieldsValue['hobbies'].join(', ') ,
-                id: employee.id,
-                key: employee.key
+                // 'hobbies': typeof fieldsValue['hobbies'] === "string" ? fieldsValue['hobbies'] : fieldsValue['hobbies'].join(', '),
+                '_id': id
             }
             dispatch(updateEmployee(details))
             notification.success({

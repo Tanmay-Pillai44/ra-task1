@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Typography, Avatar, Button } from "antd";
 import { UserOutlined, LeftCircleOutlined } from '@ant-design/icons';
 import { useSelector } from "react-redux";
+import Spinner from "../spinner/Spinner";
 
 const { Title } = Typography;
 
@@ -23,7 +24,13 @@ const EmployeeDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    const employee = useSelector((state) => state.employees.find((employee) => employee.id === id))
+    const { employees, isLoading } = useSelector((state) => state.data)
+
+    const employee = employees.find((employee) => employee._id === id)
+
+    if(isLoading) {
+        return <Spinner />
+    }
 
     return (
         <div style={{display: "flex", justifyContent: "space-evenly", flexDirection: "column"}}>
@@ -45,7 +52,7 @@ const EmployeeDetails = () => {
                     <Title level={4} style={{margin: "15px auto", color: "whitesmoke"}}>Hobbies: {employee.hobbies}</Title>
                 </div>
             </div>
-            <Button danger size="large" style={{width: "150px", margin: "10px auto", borderRadius: "5px"}} onClick={() =>navigate("/dashboard")}>
+            <Button danger size="large" style={{width: "150px", margin: "10px auto", borderRadius: "5px"}} onClick={() => navigate("/dashboard")}>
                 <LeftCircleOutlined /> Go Back
             </Button>
         </div>

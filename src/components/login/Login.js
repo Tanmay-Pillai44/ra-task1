@@ -2,8 +2,9 @@ import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Checkbox, Form, Input, Typography, notification } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { login } from '../redux/userSlice';
+import { login, reset } from '../redux/authSlice';
 import { useEffect } from 'react';
+import Spinner from '../spinner/Spinner';
 
 
 const { Title } = Typography;
@@ -14,28 +15,44 @@ const Login = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const user = useSelector((state) => state.user.user)
+    const { isError, isLoading, isSuccess } = useSelector((state) => state.auth)
+
 
     useEffect(() => {
-        if(user) {
-            navigate("/dashboard")
+        if(isError) {
+            notification.error({
+                message: "Wrong Credentials",
+                duration: "3"
+            })
         }
-    }, [navigate, user])
+        if(isSuccess) {
+            navigate('/dashboard')
+            notification.success({
+                message: 'Successfully Logged In',
+                duration: "3"
+            })
+        }
+        dispatch(reset())
+
+    }, [ isError, isSuccess, navigate, dispatch])
 
     const onFinish = (values) => {
-        dispatch(login({...values, loggedIn: true}))
-        notification.success({
-            message: "You have been logged in !",
-            duration: "3"
-        })
-        console.log('Received values of form: ', values);
+        const userData = {
+            username: values.username,
+            password: values.password
+        }
+        dispatch(login(userData))
     };
 
+    if(isLoading) {
+        return <Spinner />
+    }
+
     return (
-        <div style={{display: "flex", flexDirection: "column", justifyContent: "space-evenly", height: '80vh'}}>
-            <Title style={{color: "#13c2c2", textAlign: "center", margin: "40px auto 0px"}}>Welcome Please Login to Proceed !</Title>
-            <div style={{margin: " 0px auto 20px"}}>
-                <img src="https://c.tenor.com/AvHPuvcRU4wAAAAi/cute-penguin.gif" alt="" height="200" width="200" />
+        <div style={{display: "flex", flexDirection: "column", justifyContent: "space-evenly", alignItems: "center"}}>
+            <Title style={{color: "#13c2c2", textAlign: "center", margin: "40px auto 0px", textShadow: "3px 4px 8px rgba(81,67,21,0.6)", fontWeight: "700"}}>Welcome Back ! Please Login to Proceed !</Title>
+            <div style={{margin: "30px auto"}}>
+                <img src="https://c.tenor.com/tM6pDOQYblQAAAAC/welcome-back-awesome.gif" alt="" height="200" width="400" />
             </div>
             <div style={{backgroundColor: "#e6f7ff", padding: "40px 0px", width:"40%", margin: "auto", borderRadius:"20px", boxShadow: "0 3px 10px rgb(0 0 0 / 0.2)"}}>
                 <Form
@@ -102,7 +119,8 @@ const Login = () => {
                             span: 12,
                         }}
                     >
-                        <Button type="primary" htmlType="submit" className="login-form-button">Log in</Button>
+                        <Button type="primary" htmlType="submit" className="login-form-button" style={{marginBottom: "10px"}}>Log in</Button> <br/>
+                        Or <Link to="/signup">Register Now !</Link>
                     </Form.Item>
                 </Form>
             </div>

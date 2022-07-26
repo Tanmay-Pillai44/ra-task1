@@ -2,10 +2,11 @@ import { Table, Space, Button, Typography, Tooltip, notification } from 'antd';
 import { useSelector, useDispatch } from 'react-redux';
 import { PlusOutlined } from '@ant-design/icons';
 import { useNavigate } from "react-router-dom";
-import { deleteEmployee } from '../redux/dataSlice';
-import { logout } from '../redux/userSlice';
+import { deleteEmployee, getEmployees } from '../redux/dataSlice';
+import { logout, reset } from '../redux/authSlice';
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import Spinner from '../spinner/Spinner';
 
 const { Title } = Typography;
 
@@ -14,17 +15,11 @@ const Dashboard = () => {
 
     const dispatch = useDispatch();
 
-    const employees = useSelector((state) => state.data.employees)
+    const { employees, isError, isLoading } = useSelector((state) => state.data)
 
-    const user = useSelector((state) => state.user.user)
+    const { user } = useSelector((state) => state.auth)
 
     const navigate = useNavigate();
-
-    useEffect(() => {
-        if(!user) {
-            navigate("/login")
-        }
-    }, [navigate, user])
 
     const columns = [
         {
@@ -35,7 +30,7 @@ const Dashboard = () => {
             fixed: 'left',
             render: (text, record) => (
             <Tooltip title="Show Details" color="#b37feb">
-                <Link to= {`/employee-details/${record.id}`} style={{textDecoration: "none", color:"#722ed1"}}>{text}</Link>
+                <Link to= {`/employee-details/${record._id}`} style={{textDecoration: "none", color:"#722ed1"}}>{text}</Link>
             </Tooltip>
             ),
         },
@@ -43,6 +38,7 @@ const Dashboard = () => {
             title: 'Designation',
             dataIndex: 'designation',
             key: '1',
+            width: 110
         },
         {
             title: 'Date Of Joining',
@@ -74,7 +70,8 @@ const Dashboard = () => {
             title: 'Hobbies',
             dataIndex: 'hobbies',
             key: '7',
-            width: 200
+            width: 200,
+            render: (text) => <>{text.map((item, index) => <span key={index}>{item}, </span>)}</>
         },
         {
             title: 'Actions',
@@ -90,12 +87,28 @@ const Dashboard = () => {
         },
     ];
 
+    useEffect(() => {
+        console.log("I rendered")
+        if(isError) {
+            console.log('Error occured on dashboard')
+        }
+
+        if(!user) {
+            navigate('/login')
+        }
+
+        dispatch(getEmployees())
+
+    }, [user, navigate, isError, dispatch])
+
     const handleLogout = () => {
         dispatch(logout());
+        dispatch(reset());
         notification.info({
             message: "You have been logged out !",
             duration: "3"
         })
+        navigate('/login')
     }
 
     const handleAddEmployee = () => {
@@ -111,7 +124,11 @@ const Dashboard = () => {
     }
 
     const handleEditEmployee = (employee) => {
-        navigate(`/employee-form/${employee.id}`)
+        navigate(`/employee-form/${employee._id}`)
+    }
+
+    if(isLoading) {
+        return <Spinner />
     }
 
     return (
@@ -133,6 +150,7 @@ const Dashboard = () => {
             <Table
                 columns={columns}
                 dataSource={employees}
+                rowKey= {(record) => record._id}
                 pagination={false}
                 scroll={{
                     x: 'max-content',
